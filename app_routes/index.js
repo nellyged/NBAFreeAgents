@@ -44,7 +44,7 @@ appRouter.use((req, res, next) => {
 });
 
 appRouter.get('/', (req, res, next) => {
-  res.redirect(`/pages/${req.sections[0]}`);
+  res.redirect(`/pages/${req.sections[0].id}`);
 });
 
 appRouter.get('/pages/:id', (req, res, next) => {
