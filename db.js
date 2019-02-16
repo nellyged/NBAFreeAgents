@@ -1,51 +1,103 @@
-const { Client } = require('pg');
-const client = new Client(process.env.DATABASE_URL);
+const Sequelize = require('sequelize');
+const conn = new Sequelize(process.env.DATABASE_URL, {
+  logging: false,
+});
 
-client.connect();
+const Section = conn.define('section', {
+  name: {
+    type: Sequelize.STRING,
+    allowNull: false,
+  },
+});
 
-//query to seed the DB with the needed test data
-const SEED = `
-DROP TABLE IF EXISTS sections;
-DROP TABLE IF EXISTS players;
-  CREATE TABLE sections(
-    id SERIAL PRIMARY KEY,
-    name varchar(100)
-  );
-  CREATE TABLE players(
-    id SERIAL PRIMARY KEY,
-    position varchar(100),
-    player varchar(100),
-    team varchar(100),
-    status varchar(100)
-  );
-  INSERT INTO sections(name) values('Home');
-  INSERT INTO sections(name) values('Trends');
-  INSERT INTO sections(name) values('News');
-
-  INSERT INTO players(position,player,team,status) values ('PF','Anthony Davis','Pelicans','Under Contract');
-  INSERT INTO players(position,player,team,status) values ('SF','Khawi Leonard','Raptors','Unrestricted Free Agent');
-  INSERT INTO players(position,player,team,status) values ('PG','Kyrie Irving','Pelicans','Unrestricted Free Agent');
-  `;
-
-const getSections = () => {
-  return client.query('SELECT * FROM sections').then(response => response.rows);
-};
-
-const getPlayers = () => {
-  return client.query('SELECT * FROM players').then(response => response.rows);
-};
+const Player = conn.define('player', {
+  firstName: {
+    type: Sequelize.STRING,
+  },
+  lastName: {
+    type: Sequelize.STRING,
+  },
+  position: {
+    type: Sequelize.STRING,
+  },
+  height: {
+    type: Sequelize.STRING,
+  },
+  weight: {
+    type: Sequelize.STRING,
+  },
+  age: {
+    type: Sequelize.STRING,
+  },
+  college: {
+    type: Sequelize.STRING,
+  },
+  jerseyNumber: {
+    type: Sequelize.STRING,
+  },
+});
 
 const syncAndSeed = () => {
-  //seed then run a query to get all the tabs in an object to test successful connection
-  return client
-    .query(SEED)
-    .then(() => getSections())
-    .then(sections => {
-      return sections.reduce((acc, section) => {
-        acc[section.name] = section.id;
-        return acc;
-      }, {});
-    });
+  return conn.sync({ force: true }).then(async () => {
+    const [home, trends, analytics] = await Promise.all([
+      Section.create({
+        name: 'Home',
+      }),
+      Section.create({
+        name: 'Trends',
+      }),
+      Section.create({
+        name: 'Analystics',
+      }),
+    ]);
+
+    await Promise.all([
+      Player.create({
+        firstName: 'Khawi',
+        lastName: 'Leonard',
+        position: 'SF',
+        height: `6'7`,
+        weight: '230',
+        age: '27',
+        college: 'San Diego State University',
+        jerseyNumber: '2',
+      }),
+      Player.create({
+        firstName: 'Jimmy',
+        lastName: 'Butler',
+        position: 'SF',
+        height: `6'8`,
+        weight: '232',
+        age: '29',
+        college: 'Marquette University',
+        jerseyNumber: '23',
+      }),
+      Player.create({
+        firstName: 'Kevin',
+        lastName: 'Durant',
+        position: 'SF',
+        height: `6'9`,
+        weight: '240',
+        age: '30',
+        college: 'University Of Texas At Austin',
+        jerseyNumber: '35',
+      }),
+    ]);
+  });
 };
 
-module.exports = { syncAndSeed, getSections, getPlayers };
+const getSections = async () => {
+  const sections = await Section.findAll({}).then(sections => {
+    const tabs = [];
+    Object.keys(sections).forEach(key => {
+      tabs.push(sections[key].get());
+    });
+    return tabs;
+  });
+  return sections;
+};
+
+//Run when I am testing the seeding only
+//syncAndSeed();
+
+module.exports = { syncAndSeed, getSections };

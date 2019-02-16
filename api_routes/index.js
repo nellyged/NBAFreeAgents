@@ -5,6 +5,9 @@ module.exports = apiRouter;
 
 apiRouter.get('/', (req, res, next) => {
   db.getSections()
-    .then(sections => res.send(sections))
+    .then(sections => {
+      console.log(sections);
+      res.send(sections);
+    })
     .catch(next);
 });

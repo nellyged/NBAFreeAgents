@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "DATABASE_URL=postgress://localhost/nba_db_dev ./node_modules/mocha/bin/mocha spec.js --watch",
-    "start": "nodemon server.js"
+    "test": "DATABASE_URL=postgres://localhost/nba_db_dev ./node_modules/mocha/bin/mocha spec.js --watch",
+    "start:dev": "DATABASE_URL=postgres://localhost/nba_db_dev nodemon server.js",
+    "seed:dev": "DATABASE_URL=postgres://localhost/nba_db_dev nodemon db.js"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +18,7 @@
     "mochai": "^0.2.5",
     "nodemon": "^1.18.9",
     "pg": "^7.8.0",
+    "sequelize": "^4.42.0",
     "supertest": "^3.4.2"
   }
 }
