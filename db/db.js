@@ -97,7 +97,16 @@ const getSections = async () => {
   return sections;
 };
 
-//Run when I am testing the seeding only
-//syncAndSeed();
+const getPlayers = async () => {
+  const players = await Player.findAll({}).then(players => {
+    const freeAgents = [];
+    Object.keys(players).forEach(key => {
+      freeAgents.push(players[key].get());
+    });
+    return freeAgents;
+  });
+  return players;
+};
 
-module.exports = { syncAndSeed, getSections };
+//I like to export mehtods only, and not give access to the Models
+module.exports = { syncAndSeed, getSections, getPlayers };
