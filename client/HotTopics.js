@@ -59,9 +59,12 @@ class HotTopics extends Component {
                 </tr>
               );
             })}
+            <tr key={this.state.topics.curry.playerId}>
+              <td headers="firstName">{this.state.topics.curry.firstName}</td>
+              <td headers="lastName">{this.state.topics.curry.lastName}</td>
+            </tr>
           </tbody>
         </table>
-        {console.log(this.state.topics.curry)}
       </div>
     );
   }
