@@ -31,7 +31,7 @@ class Section extends Component {
         console.log(e);
       });
   }
-  onSelect = id => {
+  onSelect(id) {
     //Based on the tab selected we will render the proper Component
     if (id === 1) {
       this.setState({ selected: <FreeAgents /> });
@@ -42,7 +42,7 @@ class Section extends Component {
     if (id === 3) {
       this.setState({ selected: <Analytics /> });
     }
-  };
+  }
   render() {
     return (
       <div className="container">
