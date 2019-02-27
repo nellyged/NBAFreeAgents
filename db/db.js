@@ -10,6 +10,22 @@ const Section = conn.define('section', {
   },
 });
 
+const Team = conn.define('team', {
+  name: {
+    type: Sequelize.STRING,
+  },
+});
+
+const User = conn.define('user', {
+  name: {
+    type: Sequelize.STRING,
+  },
+  favTeams: {
+    defaultValue: [],
+    type: Sequelize.ARRAY(Sequelize.INTEGER),
+  },
+});
+
 const Player = conn.define('player', {
   firstName: {
     type: Sequelize.STRING,
@@ -37,7 +53,7 @@ const Player = conn.define('player', {
   },
 });
 
-const Trend = conn.define('trend', {
+const Take = conn.define('take', {
   title: {
     type: Sequelize.STRING,
   },
@@ -46,8 +62,10 @@ const Trend = conn.define('trend', {
   },
 });
 
-Trend.belongsTo(Player);
-Player.hasMany(Trend);
+Take.belongsTo(Player);
+Take.belongsTo(User);
+Player.hasMany(Take);
+User.hasMany(Take);
 
 //Could pull in the faker npm package to get some fake data, to test tons of data
 
@@ -58,10 +76,66 @@ const syncAndSeed = () => {
         name: 'Free Agents',
       }),
       Section.create({
-        name: 'Trends',
+        name: 'Takes',
       }),
       Section.create({
-        name: 'Analystics',
+        name: 'Analytics',
+      }),
+    ]);
+
+    const [knicks, lakers, gsw] = await Promise.all([
+      Team.create({
+        name: 'New York Knicks',
+      }),
+      Team.create({
+        name: 'Los Angeles Lakers',
+      }),
+      Team.create({
+        name: 'Golden State Warriors',
+      }),
+    ]);
+
+    const [
+      alvin,
+      justin,
+      ernst,
+      jerry,
+      bernard,
+      damon,
+      mike,
+      nelson,
+    ] = await Promise.all([
+      User.create({
+        name: 'Alvin',
+        favTeams: [knicks.id],
+      }),
+      User.create({
+        name: 'Justin',
+        favTeams: [knicks.id],
+      }),
+      User.create({
+        name: 'Ernst',
+        favTeams: [knicks.id],
+      }),
+      User.create({
+        name: 'Jerry',
+        favTeams: [knicks.id],
+      }),
+      User.create({
+        name: 'Bernard',
+        favTeams: [knicks.id],
+      }),
+      User.create({
+        name: 'Damon',
+        favTeams: [gsw.id],
+      }),
+      User.create({
+        name: 'Mike',
+        favTeams: [gsw.id],
+      }),
+      User.create({
+        name: 'Nelson',
+        favTeams: [lakers.id],
       }),
     ]);
 
@@ -99,17 +173,26 @@ const syncAndSeed = () => {
     ]);
 
     await Promise.all([
-      Trend.create({
+      Take.create({
         title: 'Khawi Loves The 6',
         description:
           'Reports have Khawi seriously considering resigning with Toronto this summer',
         playerId: khawi.id,
+        userId: bernard.id,
       }),
-      Trend.create({
+      Take.create({
         title: 'Is Jimmy The Key To A Philly Title?',
         description:
           'After making strong additons before the trade deadline Philly is primed to compete for an Eastern Conference title. Many beleive Jimmy will have to play the biggest role in getting them over the hump',
         playerId: jimmy.id,
+        userId: ernst.id,
+      }),
+      Take.create({
+        title: 'KD Coming To The Big Apple',
+        description:
+          'All signs point to KD shocking the league once again and signing with the Knicks to jump start a franchise that has been a bottom dweller for 2 decades',
+        playerId: kevin.id,
+        userId: justin.id,
       }),
     ]);
   });
@@ -137,18 +220,18 @@ const getPlayers = async () => {
   return players;
 };
 
-const getTrends = async () => {
-  const trends = await Trend.findAll({
-    include: [Player],
-  }).then(trends => {
+const getTakes = async () => {
+  const takes = await Take.findAll({
+    include: [Player, User],
+  }).then(takes => {
     const stories = [];
-    Object.keys(trends).forEach(key => {
-      stories.push(trends[key].get());
+    Object.keys(takes).forEach(key => {
+      stories.push(takes[key].get());
     });
     return stories;
   });
-  return trends;
+  return takes;
 };
 
 //I like to export mehtods only, and not give access to the Models
-module.exports = { syncAndSeed, getSections, getPlayers, getTrends };
+module.exports = { syncAndSeed, getSections, getPlayers, getTakes };

@@ -76,10 +76,10 @@ Router.get('/api/freeagents', (req, res, next) => {
     .catch(next);
 });
 
-Router.get('/api/trends', (req, res, next) => {
-  db.getTrends()
-    .then(trends => {
-      res.send(trends);
+Router.get('/api/takes', (req, res, next) => {
+  db.getTakes()
+    .then(takes => {
+      res.send(takes);
     })
     .catch(next);
 });

@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
 import FreeAgents from './FreeAgents';
-import Trends from './Trends';
+import Takes from './Takes';
 //this script is being plugged into the index.html file that we server and running javascirpt to build the elements using data grabbed from our backend api ... Full stack app :)
 const root = document.querySelector('#app');
 
@@ -36,7 +36,7 @@ class Section extends Component {
       this.setState({ selected: <FreeAgents /> });
     }
     if (id === 2) {
-      this.setState({ selected: <Trends /> });
+      this.setState({ selected: <Takes /> });
     }
     if (id === 3) {
       this.setState({ selected: <Analytics /> });

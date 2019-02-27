@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 
-class Trends extends Component {
+class Takes extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -10,7 +10,7 @@ class Trends extends Component {
   }
   componentDidMount() {
     axios
-      .get('/api/trends')
+      .get('/api/takes')
       .then(responses => {
         return responses.data;
       })
@@ -25,13 +25,14 @@ class Trends extends Component {
     return (
       <div>
         <hr />
-        <h3>Hot StoryLines</h3>
+        <h3>Hot Takes</h3>
         <table>
           <tbody>
             <tr>
               <th id="title">Title</th>
               <th id="details">Details</th>
               <th id="player">Player</th>
+              <th id="user">User</th>
             </tr>
             {this.state.stories.map(story => {
               return (
@@ -41,6 +42,7 @@ class Trends extends Component {
                   <td headers="player">
                     {story.player.firstName + ' ' + story.player.lastName}
                   </td>
+                  <td headers="user">{story.user.name}</td>
                 </tr>
               );
             })}
@@ -51,4 +53,4 @@ class Trends extends Component {
   }
 }
 
-export default Trends;
+export default Takes;

@@ -1,0 +1,4 @@
+node_modules
+.DS_tore
+public/bundle.js
+public/bundle.js.map
