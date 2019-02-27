@@ -14,7 +14,8 @@ class Section extends Component {
       tabs: [],
       selected: <FreeAgents />,
     };
-    this.onSelect = this.onSelect.bind(this);
+    //If I setup with presets [react,env,stage-2] I can make mehtods using the fat arrows
+    //Look up all benefits I get with this setup
   }
   componentDidMount() {
     axios
@@ -30,7 +31,7 @@ class Section extends Component {
         console.log(e);
       });
   }
-  onSelect(id) {
+  onSelect = id => {
     //Based on the tab selected we will render the proper Component
     if (id === 1) {
       this.setState({ selected: <FreeAgents /> });
@@ -41,7 +42,7 @@ class Section extends Component {
     if (id === 3) {
       this.setState({ selected: <Analytics /> });
     }
-  }
+  };
   render() {
     return (
       <div className="container">

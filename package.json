@@ -13,7 +13,9 @@
   },
   "babel": {
     "presets": [
-      "react"
+      "react",
+      "env",
+      "stage-2"
     ]
   },
   "keywords": [],
