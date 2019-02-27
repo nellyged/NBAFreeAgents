@@ -14,6 +14,9 @@ const Team = conn.define('team', {
   name: {
     type: Sequelize.STRING,
   },
+  headCoach: {
+    type: Sequelize.STRING,
+  },
 });
 
 const User = conn.define('user', {
@@ -67,13 +70,16 @@ Take.belongsTo(User);
 Player.hasMany(Take);
 User.hasMany(Take);
 
+Player.belongsTo(Team);
+Team.hasMany(Player);
+
 //Could pull in the faker npm package to get some fake data, to test tons of data
 
 const syncAndSeed = () => {
   return conn.sync({ force: true }).then(async () => {
     await Promise.all([
       Section.create({
-        name: 'Free Agents',
+        name: 'Hot Topics',
       }),
       Section.create({
         name: 'Takes',
@@ -209,15 +215,18 @@ const getSections = async () => {
   return sections;
 };
 
-const getPlayers = async () => {
-  const players = await Player.findAll({}).then(players => {
+const getHotTopics = async () => {
+  //Grab freeAgents, Teams on the move, GM News etc
+  const topics = {};
+  const freeAgents = await Player.findAll({}).then(players => {
     const freeAgents = [];
     Object.keys(players).forEach(key => {
       freeAgents.push(players[key].get());
     });
     return freeAgents;
   });
-  return players;
+  topics.freeAgents = freeAgents;
+  return topics;
 };
 
 const getTakes = async () => {
@@ -234,4 +243,4 @@ const getTakes = async () => {
 };
 
 //I like to export mehtods only, and not give access to the Models
-module.exports = { syncAndSeed, getSections, getPlayers, getTakes };
+module.exports = { syncAndSeed, getSections, getHotTopics, getTakes };

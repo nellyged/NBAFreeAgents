@@ -25,7 +25,7 @@ class Takes extends Component {
     return (
       <div>
         <hr />
-        <h3>Hot Takes</h3>
+        <h3>Latest Hot Takes</h3>
         <table>
           <tbody>
             <tr>

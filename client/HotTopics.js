@@ -1,21 +1,26 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 
-class FreeAgents extends Component {
+class HotTopics extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      freeAgents: [],
+      topics: {
+        freeAgents: [],
+        teamNeeds: [],
+        gmStories: [],
+        tradeRumors: [],
+      },
     };
   }
   componentDidMount() {
     axios
-      .get('/api/freeagents')
+      .get('/api/hottopics')
       .then(responses => {
         return responses.data;
       })
       .then(responses => {
-        this.setState({ freeAgents: responses });
+        this.setState({ topics: responses });
       })
       .catch(e => {
         console.log(e);
@@ -25,7 +30,7 @@ class FreeAgents extends Component {
     return (
       <div>
         <hr />
-        <h3>Players To Watch</h3>
+        <h3>Summer 2019 Free Agents</h3>
         <table>
           <tbody>
             <tr>
@@ -38,7 +43,7 @@ class FreeAgents extends Component {
               <th id="college">College</th>
               <th id="jerseyNumber">Jersey Number</th>
             </tr>
-            {this.state.freeAgents.map(player => {
+            {this.state.topics.freeAgents.map(player => {
               return (
                 <tr key={player.id}>
                   <td headers="firstName">{player.firstName}</td>
@@ -59,4 +64,4 @@ class FreeAgents extends Component {
   }
 }
 
-export default FreeAgents;
+export default HotTopics;

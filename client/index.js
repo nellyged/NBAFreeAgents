@@ -1,8 +1,12 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
-import FreeAgents from './FreeAgents';
+import HotTopics from './HotTopics';
 import Takes from './Takes';
+import NBA from 'nba';
+
+const curry = NBA.findPlayer('Stephen Curry');
+
 //this script is being plugged into the index.html file that we server and running javascirpt to build the elements using data grabbed from our backend api ... Full stack app :)
 const root = document.querySelector('#app');
 
@@ -12,19 +16,17 @@ class Section extends Component {
     super();
     this.state = {
       tabs: [],
-      selected: <FreeAgents />,
+      selected: <HotTopics />,
     };
-    //If I setup with presets [react,env,stage-2] I can make mehtods using the fat arrows
-    //Look up all benefits I get with this setup
   }
   componentDidMount() {
+    NBA.stats.playerInfo({ PlayerID: curry.playerId }).then(console.log);
     axios
       .get('/api/sections')
       .then(responses => {
         return responses.data;
       })
       .then(responses => {
-        console.log(responses);
         this.setState({ tabs: responses });
       })
       .catch(e => {
@@ -34,7 +36,7 @@ class Section extends Component {
   onSelect(id) {
     //Based on the tab selected we will render the proper Component
     if (id === 1) {
-      this.setState({ selected: <FreeAgents /> });
+      this.setState({ selected: <HotTopics /> });
     }
     if (id === 2) {
       this.setState({ selected: <Takes /> });
@@ -46,7 +48,7 @@ class Section extends Component {
   render() {
     return (
       <div className="container">
-        <h1>NBA Hype</h1>
+        <h1>NBA</h1>
         <ul className="nav nav-tabs">
           {this.state.tabs.map(section => {
             return (

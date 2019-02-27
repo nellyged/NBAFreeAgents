@@ -2,6 +2,21 @@ const express = require('express');
 const Router = express();
 const db = require('../db/db');
 const path = require('path');
+
+//My Sports Feed Isnt Working, Maybe Becasue its not non commerical yet
+// const MySportsFeeds = require('mysportsfeeds-node');
+// const msf = new MySportsFeeds('2.0', true, null);
+
+// msf.authenticate('3ef26792-2aec-48e6-89d3-918095', 'MYSPORTSFEEDS');
+
+// const data = msf.getData(
+//   'nba',
+//   '2016-2017-regular',
+//   'seasonal_player_gamelogs',
+//   'json',
+//   { player: 'stephen-curry' }
+// );
+
 module.exports = Router;
 
 // const renderPage = sections => {
@@ -68,10 +83,10 @@ Router.get('/', (req, res, next) => {
 });
 
 //Express app is client side and will be serving up the data that we need to populate the front end with
-Router.get('/api/freeagents', (req, res, next) => {
-  db.getPlayers()
-    .then(players => {
-      res.send(players);
+Router.get('/api/hottopics', (req, res, next) => {
+  db.getHotTopics()
+    .then(topics => {
+      res.send(topics);
     })
     .catch(next);
 });
