@@ -10,6 +10,7 @@ class HotTopics extends Component {
         teamNeeds: [],
         gmStories: [],
         tradeRumors: [],
+        curry: {},
       },
     };
   }
@@ -20,6 +21,7 @@ class HotTopics extends Component {
         return responses.data;
       })
       .then(responses => {
+        console.log(responses.curry);
         this.setState({ topics: responses });
       })
       .catch(e => {
@@ -59,6 +61,7 @@ class HotTopics extends Component {
             })}
           </tbody>
         </table>
+        {console.log(this.state.topics.curry)}
       </div>
     );
   }

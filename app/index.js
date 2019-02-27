@@ -17,6 +17,9 @@ const path = require('path');
 //   { player: 'stephen-curry' }
 // );
 
+const NBA = require('nba');
+const curry = NBA.findPlayer('Stephen Curry');
+
 module.exports = Router;
 
 // const renderPage = sections => {
@@ -86,6 +89,7 @@ Router.get('/', (req, res, next) => {
 Router.get('/api/hottopics', (req, res, next) => {
   db.getHotTopics()
     .then(topics => {
+      topics.curry = curry;
       res.send(topics);
     })
     .catch(next);

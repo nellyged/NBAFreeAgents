@@ -3,9 +3,6 @@ import ReactDOM from 'react-dom';
 import axios from 'axios';
 import HotTopics from './HotTopics';
 import Takes from './Takes';
-import NBA from 'nba';
-
-const curry = NBA.findPlayer('Stephen Curry');
 
 //this script is being plugged into the index.html file that we server and running javascirpt to build the elements using data grabbed from our backend api ... Full stack app :)
 const root = document.querySelector('#app');
@@ -20,7 +17,6 @@ class Section extends Component {
     };
   }
   componentDidMount() {
-    NBA.stats.playerInfo({ PlayerID: curry.playerId }).then(console.log);
     axios
       .get('/api/sections')
       .then(responses => {
