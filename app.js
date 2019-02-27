@@ -7,8 +7,6 @@ module.exports = app;
 //Track HTTP calls to the server
 app.use(morgan('dev'));
 
-app.use(express.static('public'));
-
 // parses url-encoded bodies
 app.use(express.urlencoded({ extended: false }));
 

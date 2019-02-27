@@ -37,11 +37,25 @@ const Player = conn.define('player', {
   },
 });
 
+const Trend = conn.define('trend', {
+  title: {
+    type: Sequelize.STRING,
+  },
+  description: {
+    type: Sequelize.STRING,
+  },
+});
+
+Trend.belongsTo(Player);
+Player.hasMany(Trend);
+
+//Could pull in the faker npm package to get some fake data, to test tons of data
+
 const syncAndSeed = () => {
   return conn.sync({ force: true }).then(async () => {
-    const [home, trends, analytics] = await Promise.all([
+    await Promise.all([
       Section.create({
-        name: 'Home',
+        name: 'Free Agents',
       }),
       Section.create({
         name: 'Trends',
@@ -51,7 +65,7 @@ const syncAndSeed = () => {
       }),
     ]);
 
-    await Promise.all([
+    const [khawi, jimmy, kevin] = await Promise.all([
       Player.create({
         firstName: 'Khawi',
         lastName: 'Leonard',
@@ -83,6 +97,21 @@ const syncAndSeed = () => {
         jerseyNumber: '35',
       }),
     ]);
+
+    await Promise.all([
+      Trend.create({
+        title: 'Khawi Loves The 6',
+        description:
+          'Reports have Khawi seriously considering resigning with Toronto this summer',
+        playerId: khawi.id,
+      }),
+      Trend.create({
+        title: 'Is Jimmy The Key To A Philly Title?',
+        description:
+          'After making strong additons before the trade deadline Philly is primed to compete for an Eastern Conference title. Many beleive Jimmy will have to play the biggest role in getting them over the hump',
+        playerId: jimmy.id,
+      }),
+    ]);
   });
 };
 
@@ -108,5 +137,18 @@ const getPlayers = async () => {
   return players;
 };
 
+const getTrends = async () => {
+  const trends = await Trend.findAll({
+    include: [Player],
+  }).then(trends => {
+    const stories = [];
+    Object.keys(trends).forEach(key => {
+      stories.push(trends[key].get());
+    });
+    return stories;
+  });
+  return trends;
+};
+
 //I like to export mehtods only, and not give access to the Models
-module.exports = { syncAndSeed, getSections, getPlayers };
+module.exports = { syncAndSeed, getSections, getPlayers, getTrends };

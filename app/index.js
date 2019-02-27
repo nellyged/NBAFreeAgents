@@ -1,6 +1,7 @@
 const express = require('express');
 const Router = express();
 const db = require('../db/db');
+const path = require('path');
 module.exports = Router;
 
 // const renderPage = sections => {
@@ -55,14 +56,30 @@ module.exports = Router;
 //   res.send(renderPage(req.sections));
 // });
 
-//Direct all traffic to the index.html that we will manipulate
-Router.use(express.static('public'));
+//Direct all traffic to the index.html that we will manipulate. Prof does it differently, lets see which works best and why. Prof way is more direct, in my way app.js and index.js are both sending data. Could cause problems later on. I will learn the Prof way
+// Router.get('/app.js', (req, res, next) => {
+//   res.sendFile(path.join(__dirname, '../dist', 'main.js'));
+// });
+
+Router.use(express.static(path.join(__dirname, '..', 'public')));
+
+Router.get('/', (req, res, next) => {
+  res.sendFile(path.join(__dirname, '../index.html'));
+});
 
 //Express app is client side and will be serving up the data that we need to populate the front end with
 Router.get('/api/freeagents', (req, res, next) => {
   db.getPlayers()
     .then(players => {
       res.send(players);
+    })
+    .catch(next);
+});
+
+Router.get('/api/trends', (req, res, next) => {
+  db.getTrends()
+    .then(trends => {
+      res.send(trends);
     })
     .catch(next);
 });

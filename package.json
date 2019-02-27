@@ -5,14 +5,24 @@
   "main": "index.js",
   "scripts": {
     "test": "DATABASE_URL=postgres://localhost/nba_db_dev ./node_modules/mocha/bin/mocha spec.js --watch",
-    "start:dev": "DATABASE_URL=postgres://localhost/nba_db_dev nodemon server.js",
+    "start:dev": "./node_modules/webpack/bin/webpack.js --watch & DATABASE_URL=postgres://localhost/nba_db_dev nodemon server.js --ignore src/ --ignore dist/",
     "start:db": "DATABASE_URL=postgres://localhost/nba_db_dev nodemon ./db/db.js",
     "seed:dev": "DATABASE_URL=postgres://localhost/nba_db_dev node ./db/seed.js"
+  },
+  "babel": {
+    "presets": [
+      "react"
+    ]
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.18.0",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.5",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-react": "^6.24.1",
     "chai": "^4.2.0",
     "express": "^4.16.4",
     "mocha": "^5.2.0",
@@ -20,7 +30,11 @@
     "morgan": "^1.9.1",
     "nodemon": "^1.18.9",
     "pg": "^7.8.0",
+    "react": "^16.8.3",
+    "react-dom": "^16.8.3",
     "sequelize": "^4.42.0",
-    "supertest": "^3.4.2"
+    "supertest": "^3.4.2",
+    "webpack": "^4.29.5",
+    "webpack-cli": "^3.2.3"
   }
 }
