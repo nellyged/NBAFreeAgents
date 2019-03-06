@@ -2,84 +2,17 @@ const express = require('express');
 const Router = express();
 const db = require('../db/db');
 const path = require('path');
-
-//My Sports Feed Isnt Working, Maybe Becasue its not non commerical yet
-// const MySportsFeeds = require('mysportsfeeds-node');
-// const msf = new MySportsFeeds('2.0', true, null);
-
-// msf.authenticate('3ef26792-2aec-48e6-89d3-918095', 'MYSPORTSFEEDS');
-
-// const data = msf.getData(
-//   'nba',
-//   '2016-2017-regular',
-//   'seasonal_player_gamelogs',
-//   'json',
-//   { player: 'stephen-curry' }
-// );
-
 const NBA = require('nba');
-const curry = NBA.findPlayer('Stephen Curry');
 
 module.exports = Router;
 
-// const renderPage = sections => {
-//   return `
-//       <html>
-//       <head>
-//         <link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css' />
-//       </head>
-//       <body>
-
-//         <div class='container'>
-//         <h1>Summer 2019 Free Agents</h1>
-//         <ul class='nav nav-tabs'>
-//           ${sections
-//             .map(section => {
-//               return `
-//               <li class='nav-item'>
-//                 <a href='/pages/${section.id}' class='nav-link'>
-//                 ${section.name}
-//                 </a>
-//               </li>
-//             `;
-//             })
-//             .join('')}
-//         </ul>
-//         <div id = 'tabContent'>
-//         </div>
-//       </div>
-//       </body>
-//       </html>
-//     `;
-// };
-
-// Router.use((req, res, next) => {
-//   //Loads the sections but I probably dont need this once I incoporate React and server up one HTML page
-//   db.getSections()
-//     .then(response => {
-//       req.sections = response;
-//       next();
-//     })
-//     .catch(next);
-// });
-
-// Router.get('/', (req, res, next) => {
-//   res.redirect(`/pages/${req.sections[0].id}`);
-// });
-
-// Router.get('/pages/:id', (req, res, next) => {
-//   let section = req.sections.filter(element => {
-//     return element.id === req.params.id + 0;
-//   }).name;
-//   res.send(renderPage(req.sections));
-// });
-
-//Direct all traffic to the index.html that we will manipulate. Prof does it differently, lets see which works best and why. Prof way is more direct, in my way app.js and index.js are both sending data. Could cause problems later on. I will learn the Prof way
-// Router.get('/app.js', (req, res, next) => {
-//   res.sendFile(path.join(__dirname, '../dist', 'main.js'));
-// });
-
 Router.use(express.static(path.join(__dirname, '..', 'public')));
+
+// Error handling endware
+Router.use((err, req, res, next) => {
+  res.status(err.status || 500);
+  res.send(err.message || 'Internal server error');
+});
 
 Router.get('/', (req, res, next) => {
   res.sendFile(path.join(__dirname, '../index.html'));
@@ -89,7 +22,6 @@ Router.get('/', (req, res, next) => {
 Router.get('/api/hottopics', (req, res, next) => {
   db.getHotTopics()
     .then(topics => {
-      topics.curry = curry;
       res.send(topics);
     })
     .catch(next);
@@ -103,13 +35,131 @@ Router.get('/api/takes', (req, res, next) => {
     .catch(next);
 });
 
+Router.get('/api/rosters/:id', (req, res, next) => {
+  NBA.stats
+    .commonTeamRoster({ TeamID: parseInt(req.params.id) })
+    .then(teamRoster => {
+      res.send({
+        teamId: teamRoster.commonTeamRoster[0].teamID,
+        headCoach: teamRoster.coaches[0].coachName,
+        headCoachId: teamRoster.coaches[0].coachId,
+        players: teamRoster.commonTeamRoster.reduce((acc, curr) => {
+          const player = {};
+          player.id = curr.playerId;
+          player.firstName = curr.player.split(' ')[0];
+          player.lastName = curr.player.split(' ')[1];
+          player.jerseyNumber = curr.num;
+          player.height = curr.height;
+          player.weight = curr.weight;
+          player.college = curr.school;
+          player.DOB = curr.birthDate;
+          player.age = curr.age;
+          player.yearsActive = curr.exp;
+          acc.push(player);
+          return acc;
+        }, []),
+      });
+    })
+    .catch(next);
+});
+
+Router.post('/api/rosters/:id', (req, res, next) => {
+  NBA.stats
+    .commonTeamRoster({ TeamID: parseInt(req.params.id) })
+    .then(teamRoster => {
+      //Save data for each person on the roster and the coach details
+      teamRoster.commonTeamRoster.forEach(person => {
+        db.models.PlayerDetail.create({
+          playerId: person.playerId,
+          jerseyNumber: person.num,
+          height: person.height,
+          weight: person.weight,
+          college: person.school,
+          age: person.age,
+        });
+      });
+
+      db.models.Coach.create({
+        teamId: teamRoster.commonTeamRoster[0].teamID,
+        name: teamRoster.coaches[0].coachName,
+        coachId: teamRoster.coaches[0].coachId,
+      });
+
+      res.send({ message: 'Created Player Detail & Coach' });
+    })
+    .catch(next);
+});
+
+Router.get('/api/playerDetail/:id', (req, res, next) => {
+  db.models.PlayerDetail.findOne({
+    where: {
+      playerId: parseInt(req.params.id),
+    },
+  })
+    .then(player => {
+      res.send(player);
+    })
+    .catch(next);
+});
+
+Router.put('/api/playerStats/:id', (req, res, next) => {
+  NBA.stats.playerInfo({ PlayerID: parseInt(req.params.id) }).then(console.log);
+  NBA.stats
+    .playerInfo({ PlayerID: parseInt(req.params.id) })
+    .then(async player => {
+      const [
+        numberOfAffectedRows,
+        affectedRows,
+      ] = await db.models.Player.update(
+        {
+          position: player.commonPlayerInfo[0].position,
+        },
+        {
+          where: { playerId: parseInt(req.params.id) },
+          returning: true,
+        }
+      );
+
+      console.log(`Returned Rows ${numberOfAffectedRows}`);
+      console.log(`Returned Rows ${affectedRows}`);
+
+      if (!numberOfAffectedRows) {
+        //The player was not present so we create it
+        db.models.Player.create({
+          firstName: player.commonPlayerInfo[0].firstName,
+          lastName: player.commonPlayerInfo[0].lastName,
+          playerId: player.commonPlayerInfo[0].personId,
+          teamId: player.commonPlayerInfo[0].teamId,
+          position: player.commonPlayerInfo[0].position,
+        });
+      }
+
+      res.send({
+        playerDetails: player.commonPlayerInfo[0],
+        playerStats: player.playerHeadlineStats[0],
+        message: 'Player Details Saved',
+      });
+    })
+    .catch(next);
+});
+
+Router.get('/api/playerStats/:id', (req, res, next) => {
+  NBA.stats.playerInfo({ PlayerID: parseInt(req.params.id) }).then(console.log);
+  NBA.stats
+    .playerInfo({ PlayerID: parseInt(req.params.id) })
+    .then(player => {
+      res.send({
+        playerDetails: player.commonPlayerInfo[0],
+        playerStats: player.playerHeadlineStats[0],
+      });
+    })
+    .catch(next);
+});
+
 Router.get('/api/sections', (req, res, next) => {
-  //Loads the sections but I probably dont need this once I incoporate React and server up one HTML page
   db.getSections()
     .then(sections => {
       res.send(sections);
     })
     .catch(next);
 });
-
-//Add handling for unfound routes entered in the URL

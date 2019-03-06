@@ -31,7 +31,6 @@ class Takes extends Component {
             <tr>
               <th id="title">Title</th>
               <th id="details">Details</th>
-              <th id="player">Player</th>
               <th id="user">User</th>
             </tr>
             {this.state.stories.map(story => {
@@ -39,9 +38,6 @@ class Takes extends Component {
                 <tr key={story.id}>
                   <td headers="title">{story.title}</td>
                   <td headers="details">{story.description}</td>
-                  <td headers="player">
-                    {story.player.firstName + ' ' + story.player.lastName}
-                  </td>
                   <td headers="user">{story.user.name}</td>
                 </tr>
               );

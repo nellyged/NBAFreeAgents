@@ -10,23 +10,57 @@ class HotTopics extends Component {
         teamNeeds: [],
         gmStories: [],
         tradeRumors: [],
-        curry: {},
+        injuryReports: [],
+        mvpRace: [],
+        royRace: [],
       },
     };
   }
-  componentDidMount() {
-    axios
+  async componentDidMount() {
+    const players = await axios
       .get('/api/hottopics')
       .then(responses => {
         return responses.data;
       })
       .then(responses => {
-        console.log(responses.curry);
-        this.setState({ topics: responses });
-      })
-      .catch(e => {
-        console.log(e);
+        return responses;
       });
+
+    players.freeAgents.forEach(async player => {
+      await axios(`/api/playerDetail/${player.playerId}`)
+        .then(responses => {
+          return responses.data;
+        })
+        .then(responses => {
+          //append this addiotnal data to the player
+          player.age = responses.age;
+          player.height = responses.height;
+          player.weight = responses.weight;
+          player.college = responses.college;
+          player.jerseyNumber = responses.jerseyNumber;
+          this.setState({
+            freeAgents: this.state.topics.freeAgents.push(player),
+          });
+        });
+    });
+
+    players.mvpRace.forEach(async player => {
+      await axios(`/api/playerDetail/${player.playerId}`)
+        .then(responses => {
+          return responses.data;
+        })
+        .then(responses => {
+          //append this addiotnal data to the player
+          player.age = responses.age;
+          player.height = responses.height;
+          player.weight = responses.weight;
+          player.college = responses.college;
+          player.jerseyNumber = responses.jerseyNumber;
+          this.setState({
+            mvpRace: this.state.topics.mvpRace.push(player),
+          });
+        });
+    });
   }
   render() {
     return (
@@ -59,12 +93,40 @@ class HotTopics extends Component {
                 </tr>
               );
             })}
-            <tr key={this.state.topics.curry.playerId}>
-              <td headers="firstName">{this.state.topics.curry.firstName}</td>
-              <td headers="lastName">{this.state.topics.curry.lastName}</td>
-            </tr>
           </tbody>
         </table>
+        <div>
+          <hr />
+          <h3>MVP Race</h3>
+          <table>
+            <tbody>
+              <tr>
+                <th id="firstName">First Name</th>
+                <th id="lastName">Last Name</th>
+                <th id="position">Position</th>
+                <th id="height">Height</th>
+                <th id="weight">Weight</th>
+                <th id="age">Age</th>
+                <th id="college">College</th>
+                <th id="jerseyNumber">Jersey Number</th>
+              </tr>
+              {this.state.topics.mvpRace.map(player => {
+                return (
+                  <tr key={player.id}>
+                    <td headers="firstName">{player.firstName}</td>
+                    <td headers="lastName">{player.lastName}</td>
+                    <td headers="position">{player.position}</td>
+                    <td headers="height">{player.height}</td>
+                    <td headers="weight">{player.weight}</td>
+                    <td headers="age">{player.age}</td>
+                    <td headers="college">{player.college}</td>
+                    <td headers="jerseyNumber">{player.jerseyNumber}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   }

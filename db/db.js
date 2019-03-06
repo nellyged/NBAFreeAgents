@@ -2,6 +2,7 @@ const Sequelize = require('sequelize');
 const conn = new Sequelize(process.env.DATABASE_URL, {
   logging: false,
 });
+const NBA = require('nba');
 
 const Section = conn.define('section', {
   name: {
@@ -11,10 +12,16 @@ const Section = conn.define('section', {
 });
 
 const Team = conn.define('team', {
+  teamId: {
+    type: Sequelize.INTEGER,
+  },
   name: {
     type: Sequelize.STRING,
   },
-  headCoach: {
+  abr: {
+    type: Sequelize.STRING,
+  },
+  location: {
     type: Sequelize.STRING,
   },
 });
@@ -29,7 +36,19 @@ const User = conn.define('user', {
   },
 });
 
+const Coach = conn.define('coach', {
+  teamId: Sequelize.INTEGER,
+  name: Sequelize.STRING,
+  coachId: Sequelize.STRING,
+});
+
 const Player = conn.define('player', {
+  playerId: {
+    type: Sequelize.INTEGER,
+  },
+  teamId: {
+    type: Sequelize.INTEGER,
+  },
   firstName: {
     type: Sequelize.STRING,
   },
@@ -39,21 +58,15 @@ const Player = conn.define('player', {
   position: {
     type: Sequelize.STRING,
   },
-  height: {
-    type: Sequelize.STRING,
-  },
-  weight: {
-    type: Sequelize.STRING,
-  },
-  age: {
-    type: Sequelize.STRING,
-  },
-  college: {
-    type: Sequelize.STRING,
-  },
-  jerseyNumber: {
-    type: Sequelize.STRING,
-  },
+});
+
+const PlayerDetail = conn.define('playerDetail', {
+  playerId: Sequelize.INTEGER,
+  height: Sequelize.STRING,
+  weight: Sequelize.STRING,
+  age: Sequelize.STRING,
+  college: Sequelize.STRING,
+  jerseyNumber: Sequelize.STRING,
 });
 
 const Take = conn.define('take', {
@@ -65,19 +78,13 @@ const Take = conn.define('take', {
   },
 });
 
-Take.belongsTo(Player);
+//Set the relationships now
 Take.belongsTo(User);
-Player.hasMany(Take);
 User.hasMany(Take);
-
-Player.belongsTo(Team);
-Team.hasMany(Player);
-
-//Could pull in the faker npm package to get some fake data, to test tons of data
 
 const syncAndSeed = () => {
   return conn.sync({ force: true }).then(async () => {
-    await Promise.all([
+    Promise.all([
       Section.create({
         name: 'Hot Topics',
       }),
@@ -87,19 +94,32 @@ const syncAndSeed = () => {
       Section.create({
         name: 'Analytics',
       }),
+      Section.create({
+        name: 'Wagers',
+      }),
     ]);
 
-    const [knicks, lakers, gsw] = await Promise.all([
+    //Create Bare Bone Teams
+    NBA.teams.forEach(team => {
       Team.create({
-        name: 'New York Knicks',
-      }),
-      Team.create({
-        name: 'Los Angeles Lakers',
-      }),
-      Team.create({
-        name: 'Golden State Warriors',
-      }),
-    ]);
+        teamId: team.teamId,
+        name: team.teamName,
+        abr: team.abbreviation,
+        location: team.location,
+      });
+    });
+
+    //Create Bare Bone Players
+    NBA.players.forEach(player => {
+      Player.create({
+        firstName: player.firstName,
+        lastName: player.lastName,
+        playerId: player.playerId,
+        teamId: player.teamId,
+      });
+    });
+
+    //The nba package doesnt seem to have rookie bare bones data
 
     const [
       alvin,
@@ -113,68 +133,35 @@ const syncAndSeed = () => {
     ] = await Promise.all([
       User.create({
         name: 'Alvin',
-        favTeams: [knicks.id],
+        favTeams: [],
       }),
       User.create({
         name: 'Justin',
-        favTeams: [knicks.id],
+        favTeams: [],
       }),
       User.create({
         name: 'Ernst',
-        favTeams: [knicks.id],
+        favTeams: [],
       }),
       User.create({
         name: 'Jerry',
-        favTeams: [knicks.id],
+        favTeams: [],
       }),
       User.create({
         name: 'Bernard',
-        favTeams: [knicks.id],
+        favTeams: [],
       }),
       User.create({
         name: 'Damon',
-        favTeams: [gsw.id],
+        favTeams: [],
       }),
       User.create({
         name: 'Mike',
-        favTeams: [gsw.id],
+        favTeams: [],
       }),
       User.create({
         name: 'Nelson',
-        favTeams: [lakers.id],
-      }),
-    ]);
-
-    const [khawi, jimmy, kevin] = await Promise.all([
-      Player.create({
-        firstName: 'Khawi',
-        lastName: 'Leonard',
-        position: 'SF',
-        height: `6'7`,
-        weight: '230',
-        age: '27',
-        college: 'San Diego State University',
-        jerseyNumber: '2',
-      }),
-      Player.create({
-        firstName: 'Jimmy',
-        lastName: 'Butler',
-        position: 'SF',
-        height: `6'8`,
-        weight: '232',
-        age: '29',
-        college: 'Marquette University',
-        jerseyNumber: '23',
-      }),
-      Player.create({
-        firstName: 'Kevin',
-        lastName: 'Durant',
-        position: 'SF',
-        height: `6'9`,
-        weight: '240',
-        age: '30',
-        college: 'University Of Texas At Austin',
-        jerseyNumber: '35',
+        favTeams: [],
       }),
     ]);
 
@@ -183,22 +170,19 @@ const syncAndSeed = () => {
         title: 'Khawi Loves The 6',
         description:
           'Reports have Khawi seriously considering resigning with Toronto this summer',
-        playerId: khawi.id,
-        userId: bernard.id,
+        userId: 1,
       }),
       Take.create({
         title: 'Is Jimmy The Key To A Philly Title?',
         description:
           'After making strong additons before the trade deadline Philly is primed to compete for an Eastern Conference title. Many beleive Jimmy will have to play the biggest role in getting them over the hump',
-        playerId: jimmy.id,
-        userId: ernst.id,
+        userId: 2,
       }),
       Take.create({
         title: 'KD Coming To The Big Apple',
         description:
           'All signs point to KD shocking the league once again and signing with the Knicks to jump start a franchise that has been a bottom dweller for 2 decades',
-        playerId: kevin.id,
-        userId: justin.id,
+        userId: 3,
       }),
     ]);
   });
@@ -216,22 +200,74 @@ const getSections = async () => {
 };
 
 const getHotTopics = async () => {
+  const Op = Sequelize.Op;
   //Grab freeAgents, Teams on the move, GM News etc
   const topics = {};
-  const freeAgents = await Player.findAll({}).then(players => {
+  const freeAgents = await Player.findAll({
+    where: {
+      playerId: {
+        [Op.in]: [
+          201142,
+          202695,
+          202681,
+          202710,
+          202689,
+          202691,
+          202326,
+          202696,
+          202699,
+          204001,
+          203114,
+          1626156,
+          201188,
+          203944,
+        ],
+      },
+    },
+  }).then(players => {
     const freeAgents = [];
     Object.keys(players).forEach(key => {
       freeAgents.push(players[key].get());
     });
     return freeAgents;
   });
+
+  const mvpCandidates = await Player.findAll({
+    where: {
+      playerId: {
+        [Op.in]: [201935, 203507, 202331],
+      },
+    },
+  }).then(players => {
+    const mvpCandidates = [];
+    Object.keys(players).forEach(key => {
+      mvpCandidates.push(players[key].get());
+    });
+    return mvpCandidates;
+  });
+
+  const royCandidates = await Player.findAll({
+    where: {
+      playerId: {
+        [Op.in]: [201935, 203507, 202331],
+      },
+    },
+  }).then(players => {
+    const mvpCandidates = [];
+    Object.keys(players).forEach(key => {
+      mvpCandidates.push(players[key].get());
+    });
+    return mvpCandidates;
+  });
+
   topics.freeAgents = freeAgents;
+  topics.mvpRace = mvpCandidates;
   return topics;
 };
 
 const getTakes = async () => {
   const takes = await Take.findAll({
-    include: [Player, User],
+    include: [User],
   }).then(takes => {
     const stories = [];
     Object.keys(takes).forEach(key => {
@@ -242,5 +278,19 @@ const getTakes = async () => {
   return takes;
 };
 
+const setTeams = () => {};
+
 //I like to export mehtods only, and not give access to the Models
-module.exports = { syncAndSeed, getSections, getHotTopics, getTakes };
+module.exports = {
+  syncAndSeed,
+  getSections,
+  getHotTopics,
+  getTakes,
+  setTeams,
+  models: {
+    Team,
+    Coach,
+    Player,
+    PlayerDetail,
+  },
+};
